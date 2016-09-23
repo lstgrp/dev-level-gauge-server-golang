@@ -3,23 +3,23 @@ package main
 import "errors"
 
 type LevelGaugeData struct {
-  DeviceId string `json:"deviceId"`
-  Time string `json:"time"`
-  Level uint8 `json:"level"`
+	DeviceId string `json:"deviceId"`
+	Time     string `json:"time"`
+	Level    uint8  `json:"level"`
 }
 
-func (data LevelGaugeData) Validate () error {
-  if data.DeviceId == "" {
-    return errors.New("Invalid field 'deviceId'")
-  }
+func (data LevelGaugeData) Validate() error {
+	if data.DeviceId == "" {
+		return errors.New("Invalid field 'deviceId'")
+	}
 
-  if data.Time == "" {
-    return errors.New("Invalid field 'time'")
-  }
+	if data.Time == "" {
+		return errors.New("Invalid field 'time'")
+	}
 
-  if data.Level == 0 {
-    return errors.New("Invalid field 'level'")
-  }
+	if data.Level == 0 {
+		return errors.New("Invalid field 'level'")
+	}
 
-  return nil
+	return nil
 }
