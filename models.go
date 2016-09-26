@@ -6,7 +6,7 @@ type LevelGaugeData struct {
 	Time     int64  `json:"time"`
 	Event    uint8  `json:"event"`
 	Level    uint8  `json:"level"`
-	DeviceId string `json:"deviceId"`
+	DeviceId string `json:"deviceid"`
 }
 
 type LevelGaugeRedisData struct {
@@ -17,7 +17,7 @@ type LevelGaugeRedisData struct {
 
 func (data LevelGaugeData) Validate() error {
 	if data.DeviceId == "" {
-		return errors.New("Invalid field 'deviceId'")
+		return errors.New("Invalid field 'deviceid'")
 	}
 
 	if data.Time == 0 {
