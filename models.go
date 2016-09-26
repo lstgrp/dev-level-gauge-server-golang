@@ -30,3 +30,12 @@ func (data LevelGaugeData) Validate() error {
 
 	return nil
 }
+
+type TokenParameter struct {
+	Device struct {
+		Name string `json:"name"`
+		Serial string `json:"serial"`
+				 } `json:"device"`
+	App struct {} `json:"app"`
+	User struct {} `json:"user"`
+}
