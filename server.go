@@ -1,41 +1,42 @@
 package main
 
 import (
-  "github.com/gin-gonic/gin"
-  "github.com/garyburd/redigo/redis"
-  "log"
+	"github.com/garyburd/redigo/redis"
+	"github.com/gin-gonic/gin"
+	"log"
 )
 
 type Server struct {
-  Router *gin.Engine
-  Redis redis.Conn
+	Router *gin.Engine
+	Redis  redis.Conn
 }
 
 func InitServer() *Server {
-  server := Server{}
+	server := Server{}
 
-  // Make Redis connection
-  redisConn, err := redis.Dial("tcp", LocalConfig.redisPort)
+	// Make Redis connection
+	redisConn, err := redis.Dial("tcp", LocalConfig.redisPort)
 
-  if err != nil {
-    log.Fatalln(err)
-  }
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-  server.Redis = redisConn
+	server.Redis = redisConn
 
-  // Register handlers
-  server.Router = gin.New()
-  server.Router.POST("/store", StoreData(&server))
+	// Register handlers
+	server.Router = gin.New()
+	server.Router.POST("/store", StoreData(&server))
+	server.Router.POST("/device", GenerateToken(&server))
 
-  return &server
+	return &server
 }
 
 func (s *Server) Start() {
-  s.Router.Run(LocalConfig.port)
+	s.Router.Run(LocalConfig.port)
 }
 
 func (s *Server) Teardown() {
-  if s.Redis != nil {
-    s.Redis.Close()
-  }
+	if s.Redis != nil {
+		s.Redis.Close()
+	}
 }

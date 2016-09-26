@@ -3,16 +3,16 @@ package main
 import "errors"
 
 type LevelGaugeData struct {
-	Time     int64 `json:"time"`
-	Event uint8 `json:"event"`
+	Time     int64  `json:"time"`
+	Event    uint8  `json:"event"`
 	Level    uint8  `json:"level"`
 	DeviceId string `json:"deviceId"`
 }
 
 type LevelGaugeRedisData struct {
-	Time     int64 `json:"time"`
+	Time  int64 `json:"time"`
 	Event uint8 `json:"event"`
-	Level    uint8  `json:"level"`
+	Level uint8 `json:"level"`
 }
 
 func (data LevelGaugeData) Validate() error {
@@ -33,9 +33,21 @@ func (data LevelGaugeData) Validate() error {
 
 type TokenParameter struct {
 	Device struct {
-		Name string `json:"name"`
+		Name   string `json:"name"`
 		Serial string `json:"serial"`
-				 } `json:"device"`
-	App struct {} `json:"app"`
-	User struct {} `json:"user"`
+	} `json:"device"`
+	App  struct{} `json:"app"`
+	User struct{} `json:"user"`
+}
+
+func (data TokenParameter) Validate() error {
+	if data.Device.Name == "" {
+		return errors.New("Invalid field `Device.Name`")
+	}
+
+	if data.Device.Serial == "" {
+		return errors.New("Invalid field `Device.Serial`")
+	}
+
+	return nil
 }
