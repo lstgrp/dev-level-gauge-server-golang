@@ -25,8 +25,12 @@ func InitServer() *Server {
 
 	// Register handlers
 	server.Router = gin.New()
-	server.Router.POST("/store", StoreData(&server))
 	server.Router.POST("/device", GenerateToken(&server))
+  server.Router.POST("/close", CloseSession(&server))
+  server.Router.POST("/open", OpenSession(&server))
+
+  server.Router.POST("/store", StoreData(&server))
+  server.Router.POST("/retrieve", RetrieveData(&server))
 
 	return &server
 }

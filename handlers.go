@@ -36,7 +36,35 @@ func StoreData(s *Server) func(*gin.Context) {
 
 func RetrieveData(s *Server) func(*gin.Context) {
 	return func(c *gin.Context) {
+		var data LevelGaugeDataQuery
 
+		if err := c.BindJSON(&data); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": "JSON Body is missing fields"})
+			return
+		}
+
+		dataSlice, err := s.Redis.Do("get", data.DeviceId)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
+			return
+		}
+
+		filteredData, err := LevelGaugeDataFilter(dataSlice, data.DeviceId, data.Date, data.Event)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
+			return
+		}
+
+		filteredDataJSONString, err := json.Marshal(filteredData)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"result": filteredDataJSONString})
 	}
 }
 
