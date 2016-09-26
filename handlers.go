@@ -1,29 +1,31 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
-	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
-func DataHandler(w http.ResponseWriter, r *http.Request) {
-	var data LevelGaugeData
-
-	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		log.Printf("Error while parsing JSON data: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+func StoreData(s *Server) func (*gin.Context) {
+	return func (c *gin.Context) {
+		var data LevelGaugeData
+		if c.BindJSON(&data) == nil {
+		}
 	}
+}
 
-	if err := data.Validate(); err != nil {
-		log.Printf("Error while validating JSON data: %v\n", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+func RetrieveData(s *Server) func (*gin.Context) {
+  return func (c *gin.Context) {
 
-	go func() {
-		ExecuteAllHandlers(data)
-	}()
+  }
+}
 
-	log.Printf("Received Data: %v\n", data)
+func GenerateToken(s *Server) func (*gin.Context) {
+  return func (c *gin.Context) {
+
+  }
+}
+
+func OpenSession(s * Server) func (*gin.Context) {
+  return func (c *gin.Context) {
+
+  }
 }

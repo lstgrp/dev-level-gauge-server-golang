@@ -3,9 +3,9 @@ package main
 import "errors"
 
 type LevelGaugeData struct {
-	DeviceId string `json:"deviceId"`
-	Time     string `json:"time"`
-	Level    uint8  `json:"level"`
+	DeviceId string `json:"deviceId" binding:"required"`
+	Time     int64 `json:"time" binding:"required"`
+	Level    uint8  `json:"level" binding:"required"`
 }
 
 func (data LevelGaugeData) Validate() error {
@@ -13,7 +13,7 @@ func (data LevelGaugeData) Validate() error {
 		return errors.New("Invalid field 'deviceId'")
 	}
 
-	if data.Time == "" {
+	if data.Time == 0 {
 		return errors.New("Invalid field 'time'")
 	}
 
