@@ -31,6 +31,8 @@ func StoreData(s *Server) func(*gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
 			return
 		}
+
+		c.JSON(http.StatusOK, gin.H{"result": "ok"})
 	}
 }
 

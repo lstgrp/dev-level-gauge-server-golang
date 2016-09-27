@@ -3,14 +3,14 @@ package main
 import "errors"
 
 type LevelGaugeData struct {
-	Time     int64  `json:"time"`
+	Time     int64  `json:"time" binding:"required"`
 	Event    uint8  `json:"event"`
 	Level    uint8  `json:"level"`
-	DeviceId string `json:"deviceid"`
+	DeviceId string `json:"deviceid" binding:"required"`
 }
 
 type LevelGaugeRedisData struct {
-	Time  int64 `json:"time"`
+	Time  int64 `json:"time" binding:"required"`
 	Event uint8 `json:"event"`
 	Level uint8 `json:"level"`
 }
@@ -32,15 +32,15 @@ func (data LevelGaugeData) Validate() error {
 }
 
 type LevelGaugeDataQuery struct {
-	DeviceId string  `json:"deviceid"`
-	Date     []int64 `json:"date"`
+	DeviceId string  `json:"deviceid" binding:"required"`
+	Date     []int64 `json:"date" binding:"required"`
 	Event    int     `json:"event"`
 }
 
 type TokenParameter struct {
 	Device struct {
-		Name   string `json:"name"`
-		Serial string `json:"serial"`
+		Name   string `json:"name" binding:"required"`
+		Serial string `json:"serial" binding:"required"`
 	} `json:"device"`
 	App  struct{} `json:"app"`
 	User struct{} `json:"user"`

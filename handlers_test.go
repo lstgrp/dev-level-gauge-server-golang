@@ -96,8 +96,8 @@ func TestRetrieveDataSuccess(t *testing.T) {
 func TestGenerateTokenSuccess(t *testing.T) {
 	testData := TokenParameter{
 		Device: struct {
-			Name   string `json:"name"`
-			Serial string `json:"serial"`
+			Name   string `json:"name" binding:"required"`
+			Serial string `json:"serial" binding:"required"`
 		}{
 			Name:   "test_name",
 			Serial: "test_serial",
@@ -122,5 +122,57 @@ func TestGenerateTokenSuccess(t *testing.T) {
 
 	if res == nil {
 		t.Error("Token should be stored in redis")
+	}
+}
+
+func TestCloseSessionSuccess(t *testing.T) {
+	testData := TokenParameter{
+		Device: struct {
+			Name   string `json:"name" binding:"required"`
+			Serial string `json:"serial" binding:"required"`
+		}{
+			Name:   "test_name",
+			Serial: "test_serial",
+		},
+	}
+
+	body, _ := json.Marshal(testData)
+
+	req, _ := http.NewRequest("POST", "/device", bytes.NewReader(body))
+	w := httptest.NewRecorder()
+
+	server.Router.ServeHTTP(w, req)
+
+	paramBody := struct {
+		DeviceId string
+		Token    string
+		TTL      int64
+	}{}
+	json.Unmarshal(w.Body.Bytes(), &paramBody)
+
+	testTokenData := struct {
+		Token string `json:"token"`
+	}{
+		Token: paramBody.Token,
+	}
+
+	body, _ = json.Marshal(testTokenData)
+	req, _ = http.NewRequest("POST", "/close", bytes.NewReader(body))
+	w = httptest.NewRecorder()
+
+	server.Router.ServeHTTP(w, req)
+	finalBody := struct {
+		Result string `json:"result"`
+	}{}
+	json.Unmarshal(w.Body.Bytes(), &finalBody)
+
+	if finalBody.Result != "ok" {
+		t.Error("Session was not closed successfuly")
+	}
+
+	res, _ := server.Redis.Do("get", paramBody.Token)
+
+	if res != nil {
+		t.Error("Session token was not erased successfully")
 	}
 }
