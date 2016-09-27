@@ -32,9 +32,9 @@ func (data LevelGaugeData) Validate() error {
 }
 
 type LevelGaugeDataQuery struct {
-	DeviceId string `json:"deviceid"`
-	Date     []int  `json:"date"`
-	Event    int    `json:"event"`
+	DeviceId string  `json:"deviceid"`
+	Date     []int64 `json:"date"`
+	Event    int     `json:"event"`
 }
 
 type TokenParameter struct {

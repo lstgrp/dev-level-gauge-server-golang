@@ -43,14 +43,26 @@ func RetrieveData(s *Server) func(*gin.Context) {
 			return
 		}
 
-		dataSlice, err := s.Redis.Do("get", data.DeviceId)
+		dataSlice, err := s.Redis.Do("lrange", data.DeviceId, 0, -1)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
 			return
 		}
 
-		filteredData, err := LevelGaugeDataFilter(dataSlice, data.DeviceId, data.Date, data.Event)
+		if dataSlice == nil {
+			c.JSON(http.StatusOK, gin.H{"result": "[]"})
+			return
+		}
+
+		dataByteSlice := dataSlice.([]interface{})
+		finalData := make([]string, 0)
+		for _, d := range dataByteSlice {
+			dByteSlice := d.([]byte)
+			finalData = append(finalData, string(dByteSlice))
+		}
+
+		filteredData, err := LevelGaugeDataFilter(finalData, data.DeviceId, data.Date, data.Event)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
@@ -64,7 +76,7 @@ func RetrieveData(s *Server) func(*gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"result": filteredDataJSONString})
+		c.JSON(http.StatusOK, gin.H{"result": string(filteredDataJSONString)})
 	}
 }
 

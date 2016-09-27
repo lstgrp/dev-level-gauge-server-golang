@@ -21,7 +21,7 @@ func GetTokenString(deviceId string) string {
 	return tokenStr
 }
 
-func LevelGaugeDataFilter(jsonStrData []string, deviceid string, date []int, event int) ([]LevelGaugeRedisData, error) {
+func LevelGaugeDataFilter(jsonStrData []string, deviceid string, date []int64, event int) ([]LevelGaugeData, error) {
 	dataSlice := make([]LevelGaugeData, 0)
 
 	for _, data := range jsonStrData {
@@ -33,15 +33,15 @@ func LevelGaugeDataFilter(jsonStrData []string, deviceid string, date []int, eve
 		if date[1] == -1 && event == -1 {
 			dataSlice = append(dataSlice, parsedData)
 		} else if date[1] == -1 && event != -1 {
-			if parsedData.Event == event {
+			if int(parsedData.Event) == event {
 				dataSlice = append(dataSlice, parsedData)
 			}
 		} else if date[1] != -1 && event == -1 {
-			if date[0] < parsedData.Time < date[1] {
+			if date[0] <= parsedData.Time && parsedData.Time <= date[1] {
 				dataSlice = append(dataSlice, parsedData)
 			}
 		} else {
-			if date[0] < parsedData.Time < date[1] && parsedData.Event == event {
+			if date[0] <= parsedData.Time && parsedData.Time <= date[1] && int(parsedData.Event) == event {
 				dataSlice = append(dataSlice, parsedData)
 			}
 		}

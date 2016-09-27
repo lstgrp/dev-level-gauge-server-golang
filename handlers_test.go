@@ -13,7 +13,21 @@ var server *Server
 
 func init() {
 	server = InitServer()
-	server.Redis.Flush()
+	server.Redis.Do("flushall")
+
+	for i := 1; i < 11; i++ {
+		data := LevelGaugeData{
+			DeviceId: "test_device",
+			Time:     now + int64(i*10),
+			Event:    uint8(i % 2),
+			Level:    uint8(i),
+		}
+
+		dataJSONStr, _ := json.Marshal(data)
+		req, _ := http.NewRequest("POST", "/store", bytes.NewReader(dataJSONStr))
+		w := httptest.NewRecorder()
+		server.Router.ServeHTTP(w, req)
+	}
 }
 
 func TestStoreDataSuccess(t *testing.T) {
@@ -52,6 +66,30 @@ func TestStoreDataIncompleteBody(t *testing.T) {
 
 	if w.Code == http.StatusOK {
 		t.Error("Incomplete JSON body should make request fail")
+	}
+}
+
+func TestRetrieveDataSuccess(t *testing.T) {
+	query := LevelGaugeDataQuery{
+		DeviceId: "test_device",
+		Date:     []int64{0, -1},
+		Event:    -1,
+	}
+
+	body, _ := json.Marshal(query)
+	req, _ := http.NewRequest("POST", "/retrieve", bytes.NewReader(body))
+	w := httptest.NewRecorder()
+
+	server.Router.ServeHTTP(w, req)
+	var res struct {
+		Result string `json:"result"`
+	}
+	json.Unmarshal(w.Body.Bytes(), &res)
+	var finalData []LevelGaugeData
+	json.Unmarshal([]byte(res.Result), &finalData)
+
+	if length := len(finalData); length != 10 {
+		t.Errorf("Should have received all data, instead got length: %v", length)
 	}
 }
 
