@@ -12,7 +12,7 @@ import (
 var server *Server
 
 func init() {
-	server = InitServer()
+	server = InitServer(false)
 	server.Redis.Do("flushall")
 
 	for i := 1; i < 11; i++ {

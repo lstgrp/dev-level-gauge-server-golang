@@ -11,7 +11,7 @@ type Server struct {
 	Redis  redis.Conn
 }
 
-func InitServer() *Server {
+func InitServer(useMiddleware bool) *Server {
 	server := Server{}
 
 	// Make Redis connection
@@ -25,6 +25,11 @@ func InitServer() *Server {
 
 	// Register handlers
 	server.Router = gin.New()
+
+	if useMiddleware {
+		server.Router.Use(ValidateToken(&server), EnsureJSONBody(&server))
+	}
+
 	server.Router.POST("/device", GenerateToken(&server))
 	server.Router.POST("/close", CloseSession(&server))
 	server.Router.POST("/open", OpenSession(&server))

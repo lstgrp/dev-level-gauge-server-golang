@@ -8,6 +8,7 @@ type Config struct {
 	UUIDNamespace uuid.UUID
 	tokenKey      string
 	tokenLifetime int64
+	masterKey     string
 }
 
 var uuidName, _ = uuid.FromString("27d03927-7c8f-469e-8ba1-68a376d43cc9")
@@ -18,4 +19,5 @@ var LocalConfig = Config{
 	UUIDNamespace: uuidName,
 	tokenKey:      "lshjdfsdjhf",
 	tokenLifetime: 3600,
+	masterKey:     "master-key",
 }

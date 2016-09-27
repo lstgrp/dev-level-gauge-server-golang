@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	server := InitServer()
+	server := InitServer(true)
 	defer server.Teardown()
 	server.Start()
 }
