@@ -1,0 +1,21 @@
+[submodule "redigo"]
+	path = vendor/github.com/garyburd/redigo
+	url = https://github.com/garyburd/redigo
+[submodule "gin"]
+	path = vendor/github.com/gin-gonic/gin
+	url = https://github.com/gin-gonic/gin
+[submodule "protobuff"]
+	path = vendor/github.com/golang/protobuf
+	url = https://github.com/golang/protobuf
+[submodule "sse"]
+	path = vendor/github.com/manucorporat/sse
+	url = https://github.com/manucorporat/sse
+[submodule "net"]
+	path = vendor/golang.org/x/net
+	url = https://github.com/golang/net/
+[submodule "validator"]
+	path = vendor/gopkg.in/go-playground/validator.v8
+	url = https://github.com/go-playground/validator
+[submodule "yaml"]
+	path = vendor/gopkg.in/yaml.v2
+	url = https://github.com/go-yaml/yaml
