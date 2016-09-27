@@ -6,11 +6,16 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+// GetDeviceId creates a unique device id for the given key
+// The key here is the device serial, and a v5 uuid is created
 func GetDeviceId(key string) string {
 	id := uuid.NewV5(LocalConfig.UUIDNamespace, key)
 	return id.String()
 }
 
+// GetTokenString generates a session token for the given device id
+// It uses the HS256 signing method, and although we give it a expiration time
+// the source of truth lies in the Redis DB with ttl, so jwt expiration check is not performed
 func GetTokenString(deviceId string) string {
 	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
 		ExpiresAt: LocalConfig.tokenLifetime,
@@ -21,6 +26,8 @@ func GetTokenString(deviceId string) string {
 	return tokenStr
 }
 
+// LevelGaugeDataFilter takes a slice of JSON strings given from the Redis server
+// and filters them according to the given query parameters.
 func LevelGaugeDataFilter(jsonStrData []string, deviceid string, date []int64, event int) ([]LevelGaugeData, error) {
 	dataSlice := make([]LevelGaugeData, 0)
 

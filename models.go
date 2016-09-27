@@ -2,6 +2,8 @@ package main
 
 import "errors"
 
+// LevelGaugeData is the data model for level gauge data from client
+// JSON body in POST request must follow this model and it will be validated
 type LevelGaugeData struct {
 	Time     int64  `json:"time" binding:"required"`
 	Event    uint8  `json:"event"`
@@ -9,12 +11,14 @@ type LevelGaugeData struct {
 	DeviceId string `json:"deviceid" binding:"required"`
 }
 
+// LevelGaugeRedisData is the data model that will be saved in Redis as JSON string
 type LevelGaugeRedisData struct {
 	Time  int64 `json:"time" binding:"required"`
 	Event uint8 `json:"event"`
 	Level uint8 `json:"level"`
 }
 
+// Validate function validates the JSON body given in /store POST requests
 func (data LevelGaugeData) Validate() error {
 	if data.DeviceId == "" {
 		return errors.New("Invalid field 'deviceid'")
@@ -31,12 +35,16 @@ func (data LevelGaugeData) Validate() error {
 	return nil
 }
 
+// LevelGaugeDataQuery is the data model for querying the database
+// Date is in Unix Time
 type LevelGaugeDataQuery struct {
 	DeviceId string  `json:"deviceid" binding:"required"`
 	Date     []int64 `json:"date" binding:"required"`
 	Event    int     `json:"event"`
 }
 
+// TokenParameter is the data model for generating a session token
+// Currently only the device field is necessary
 type TokenParameter struct {
 	Device struct {
 		Name   string `json:"name" binding:"required"`
@@ -46,6 +54,7 @@ type TokenParameter struct {
 	User struct{} `json:"user"`
 }
 
+// Validate validates the given token parameters for valid data
 func (data TokenParameter) Validate() error {
 	if data.Device.Name == "" {
 		return errors.New("Invalid field `Device.Name`")

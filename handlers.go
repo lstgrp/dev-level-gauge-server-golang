@@ -6,7 +6,10 @@ import (
 	"net/http"
 )
 
-func StoreData(s *Server) func(*gin.Context) {
+// StoreData is the handler for /store
+// It receives the data to save in JSON body, validates it and saves it to redis
+// as JSON string in a list
+func StoreData(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var data LevelGaugeData
 
@@ -36,7 +39,10 @@ func StoreData(s *Server) func(*gin.Context) {
 	}
 }
 
-func RetrieveData(s *Server) func(*gin.Context) {
+// RetrieveData is the handler for /retrieve
+// It takes the query object as JSON body and returns a list of data according to the query
+// Querying data for all device id is forbidden, and query filters data only within the device id given
+func RetrieveData(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var data LevelGaugeDataQuery
 
@@ -52,6 +58,7 @@ func RetrieveData(s *Server) func(*gin.Context) {
 			return
 		}
 
+    // If no data is stored for the given id, return an empty array
 		if dataSlice == nil {
 			c.JSON(http.StatusOK, gin.H{"result": "[]"})
 			return
@@ -82,7 +89,10 @@ func RetrieveData(s *Server) func(*gin.Context) {
 	}
 }
 
-func GenerateToken(s *Server) func(*gin.Context) {
+// GenerateToken is the handler for /device
+// It takes the device serial to generate a device id, and it returns
+// the device id, session token and token lifetime
+func GenerateToken(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var data TokenParameter
 
@@ -112,7 +122,9 @@ func GenerateToken(s *Server) func(*gin.Context) {
 	}
 }
 
-func OpenSession(s *Server) func(*gin.Context) {
+// OpenSession is the handler for /open
+// It takes the device id given and generates a new session token
+func OpenSession(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var data = struct {
 			DeviceId string `json:"deviceid" binding:"required"`
@@ -138,7 +150,9 @@ func OpenSession(s *Server) func(*gin.Context) {
 	}
 }
 
-func CloseSession(s *Server) func(*gin.Context) {
+// CloseSession is the handler for /close
+// It takes the session token and erases it from redis, closing the session
+func CloseSession(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var data = struct {
 			Token string `json:"token" binding:"required"`

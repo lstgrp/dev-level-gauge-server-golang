@@ -6,11 +6,15 @@ import (
 	"log"
 )
 
+// Server struct contains different instances and fields necessary for all handlers
+// It registers the routes for handlers and has the Redis client instance
 type Server struct {
 	Router *gin.Engine
 	Redis  redis.Conn
 }
 
+// InitServer creates a server instance with routes registered and Redis connected
+// If 'useMiddleware' is false, it will not validate session tokens and headers
 func InitServer(useMiddleware bool) *Server {
 	server := Server{}
 
@@ -40,10 +44,12 @@ func InitServer(useMiddleware bool) *Server {
 	return &server
 }
 
+// Start starts the server to listen on the configured port
 func (s *Server) Start() {
 	s.Router.Run(LocalConfig.port)
 }
 
+// Teardown is called when main function ends and performs necessary teardown operations
 func (s *Server) Teardown() {
 	if s.Redis != nil {
 		s.Redis.Close()
