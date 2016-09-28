@@ -11,13 +11,13 @@ import (
 func ValidateToken(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-    // If x-master-key header has master key, bypass validation
+		// If x-master-key header has master key, bypass validation
 		if masterKey := c.Request.Header.Get("x-master-key"); masterKey == LocalConfig.masterKey {
 			c.Next()
 			return
 		}
 
-    // /device and /open don't require a session token
+		// /device and /open don't require a session token
 		if c.Request.URL.Path != "/device" && c.Request.URL.Path != "/open" {
 			token := c.Request.Header.Get("x-api-jwt")
 			res, err := s.Redis.Do("get", token)

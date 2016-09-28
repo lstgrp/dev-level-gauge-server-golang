@@ -28,6 +28,7 @@ func InitServer(useMiddleware bool) *Server {
 	server.Redis = redisConn
 
 	// Register handlers
+	gin.SetMode(gin.ReleaseMode)
 	server.Router = gin.New()
 
 	if useMiddleware {

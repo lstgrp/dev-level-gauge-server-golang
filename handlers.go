@@ -58,7 +58,7 @@ func RetrieveData(s *Server) gin.HandlerFunc {
 			return
 		}
 
-    // If no data is stored for the given id, return an empty array
+		// If no data is stored for the given id, return an empty array
 		if dataSlice == nil {
 			c.JSON(http.StatusOK, gin.H{"result": "[]"})
 			return
