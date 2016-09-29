@@ -44,7 +44,11 @@ func StoreData(s *Server) gin.HandlerFunc {
 // Querying data for all device id is forbidden, and query filters data only within the device id given
 func RetrieveData(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data LevelGaugeDataQuery
+		var data = struct {
+			DeviceId string `json:"deviceid"`
+		}{
+			DeviceId: "",
+		}
 
 		if err := c.BindJSON(&data); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": "JSON Body is missing fields"})
@@ -64,28 +68,29 @@ func RetrieveData(s *Server) gin.HandlerFunc {
 			return
 		}
 
-		dataByteSlice := dataSlice.([]interface{})
-		finalData := make([]string, 0)
-		for _, d := range dataByteSlice {
-			dByteSlice := d.([]byte)
-			finalData = append(finalData, string(dByteSlice))
+		// Convert slice of JSON strings from redis to slice of LevelGaugeData
+		assertedDataSlice := dataSlice.([]interface{})
+		finalData := make([]LevelGaugeData, 0)
+		for _, d := range assertedDataSlice {
+			var redisData LevelGaugeRedisData
+			assertedD := d.([]byte)
+			json.Unmarshal(assertedD, &redisData)
+			finalData = append(finalData, LevelGaugeData{
+				DeviceId: data.DeviceId,
+				Time:     redisData.Time,
+				Event:    redisData.Event,
+				Level:    redisData.Level,
+			})
 		}
 
-		filteredData, err := LevelGaugeDataFilter(finalData, data.DeviceId, data.Date, data.Event)
+		finalDataJSONBytes, err := json.Marshal(finalData)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
 			return
 		}
 
-		filteredDataJSONString, err := json.Marshal(filteredData)
-
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"result": string(filteredDataJSONString)})
+		c.JSON(http.StatusOK, gin.H{"result": string(finalDataJSONBytes)})
 	}
 }
 

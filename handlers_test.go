@@ -59,6 +59,7 @@ func TestRetrieveData(t *testing.T) {
 	defer server.Teardown()
 	server.Redis.Do("flushall")
 
+	now := time.Now().Unix()
 	for i := 1; i < 11; i++ {
 		data := LevelGaugeData{
 			DeviceId: "test_device",
@@ -74,10 +75,10 @@ func TestRetrieveData(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		query := LevelGaugeDataQuery{
+		query := struct {
+			DeviceId string `json:"deviceid"`
+		}{
 			DeviceId: "test_device",
-			Date:     []int64{0, -1},
-			Event:    -1,
 		}
 
 		body, _ := json.Marshal(query)
@@ -94,6 +95,12 @@ func TestRetrieveData(t *testing.T) {
 
 		if length := len(finalData); length != 10 {
 			t.Errorf("Should have received all data, instead got length: %v", length)
+		}
+
+		for _, levelData := range finalData {
+			if levelData.DeviceId != "test_device" {
+				t.Errorf("Wrong data was given back. Expected 'test_device' but got: %v", levelData.DeviceId)
+			}
 		}
 	})
 }

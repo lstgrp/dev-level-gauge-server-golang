@@ -35,14 +35,6 @@ func (data LevelGaugeData) Validate() error {
 	return nil
 }
 
-// LevelGaugeDataQuery is the data model for querying the database
-// Date is in Unix Time
-type LevelGaugeDataQuery struct {
-	DeviceId string  `json:"deviceid" binding:"required"`
-	Date     []int64 `json:"date" binding:"required"`
-	Event    int     `json:"event"`
-}
-
 // TokenParameter is the data model for generating a session token
 // Currently only the device field is necessary
 type TokenParameter struct {

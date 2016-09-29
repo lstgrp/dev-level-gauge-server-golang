@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/satori/go.uuid"
 )
@@ -24,35 +23,4 @@ func GetTokenString(deviceId string) string {
 	tokenStr, _ := tokenObj.SignedString([]byte(LocalConfig.tokenKey))
 
 	return tokenStr
-}
-
-// LevelGaugeDataFilter takes a slice of JSON strings given from the Redis server
-// and filters them according to the given query parameters.
-func LevelGaugeDataFilter(jsonStrData []string, deviceid string, date []int64, event int) ([]LevelGaugeData, error) {
-	dataSlice := make([]LevelGaugeData, 0)
-
-	for _, data := range jsonStrData {
-		parsedData := LevelGaugeData{DeviceId: deviceid}
-		if err := json.Unmarshal([]byte(data), &parsedData); err != nil {
-			return nil, err
-		}
-
-		if date[1] == -1 && event == -1 {
-			dataSlice = append(dataSlice, parsedData)
-		} else if date[1] == -1 && event != -1 {
-			if int(parsedData.Event) == event {
-				dataSlice = append(dataSlice, parsedData)
-			}
-		} else if date[1] != -1 && event == -1 {
-			if date[0] <= parsedData.Time && parsedData.Time <= date[1] {
-				dataSlice = append(dataSlice, parsedData)
-			}
-		} else {
-			if date[0] <= parsedData.Time && parsedData.Time <= date[1] && int(parsedData.Event) == event {
-				dataSlice = append(dataSlice, parsedData)
-			}
-		}
-	}
-
-	return dataSlice, nil
 }
