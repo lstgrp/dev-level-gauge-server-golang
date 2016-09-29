@@ -9,36 +9,194 @@ import (
 	"time"
 )
 
-func TestDataHandlerSuccess(t *testing.T) {
-	testData := LevelGaugeData{
-		DeviceId: "test_id",
-		Time:     time.Now().String(),
-		Level:    1,
-	}
+func TestStoreData(t *testing.T) {
+	server := InitServer(false)
+	defer server.Teardown()
+	server.Redis.Do("flushall")
 
-	body, _ := json.Marshal(testData)
+	t.Run("Success", func(t *testing.T) {
+		testData := LevelGaugeData{
+			DeviceId: "test_id",
+			Time:     time.Now().Unix(),
+			Event:    0,
+			Level:    1,
+		}
 
-	req, _ := http.NewRequest("POST", "/data", bytes.NewReader(body))
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(DataHandler)
+		body, _ := json.Marshal(testData)
 
-	handler.ServeHTTP(rr, req)
+		req, _ := http.NewRequest("POST", "/store", bytes.NewReader(body))
+		w := httptest.NewRecorder()
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+		server.Router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Error("Correct json body (should succeed), instead received &v", w)
+		}
+	})
+
+	t.Run("Fail, incomplete JSON body", func(t *testing.T) {
+		testData := LevelGaugeData{
+			DeviceId: "test_id",
+			Event:    0,
+			Level:    1,
+		}
+
+		body, _ := json.Marshal(testData)
+
+		req, _ := http.NewRequest("POST", "/store", bytes.NewReader(body))
+		w := httptest.NewRecorder()
+
+		server.Router.ServeHTTP(w, req)
+
+		if w.Code == http.StatusOK {
+			t.Error("Incomplete JSON body should make request fail")
+		}
+	})
 }
 
-func TestDataHandlerBadData(t *testing.T) {
-	req, _ := http.NewRequest("POST", "/data", bytes.NewReader([]byte("")))
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(DataHandler)
+func TestRetrieveData(t *testing.T) {
+	server := InitServer(false)
+	defer server.Teardown()
+	server.Redis.Do("flushall")
 
-	handler.ServeHTTP(rr, req)
+	now := time.Now().Unix()
+	for i := 1; i < 11; i++ {
+		data := LevelGaugeData{
+			DeviceId: "test_device",
+			Time:     now + int64(i*10),
+			Event:    uint8(i % 2),
+			Level:    uint8(i),
+		}
 
-	if status := rr.Code; status == http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusBadRequest)
+		dataJSONStr, _ := json.Marshal(data)
+		req, _ := http.NewRequest("POST", "/store", bytes.NewReader(dataJSONStr))
+		w := httptest.NewRecorder()
+		server.Router.ServeHTTP(w, req)
 	}
+
+	t.Run("Success", func(t *testing.T) {
+		query := struct {
+			DeviceId string `json:"deviceid"`
+		}{
+			DeviceId: "test_device",
+		}
+
+		body, _ := json.Marshal(query)
+		req, _ := http.NewRequest("POST", "/retrieve", bytes.NewReader(body))
+		w := httptest.NewRecorder()
+
+		server.Router.ServeHTTP(w, req)
+		var res struct {
+			Result string `json:"result"`
+		}
+		json.Unmarshal(w.Body.Bytes(), &res)
+		var finalData []LevelGaugeData
+		json.Unmarshal([]byte(res.Result), &finalData)
+
+		if length := len(finalData); length != 10 {
+			t.Errorf("Should have received all data, instead got length: %v", length)
+		}
+
+		for _, levelData := range finalData {
+			if levelData.DeviceId != "test_device" {
+				t.Errorf("Wrong data was given back. Expected 'test_device' but got: %v", levelData.DeviceId)
+			}
+		}
+	})
+}
+
+func TestGenerateToken(t *testing.T) {
+	server := InitServer(false)
+	defer server.Teardown()
+	server.Redis.Do("flushall")
+
+	t.Run("Success", func(t *testing.T) {
+		testData := TokenParameter{
+			Device: struct {
+				Name   string `json:"name" binding:"required"`
+				Serial string `json:"serial" binding:"required"`
+			}{
+				Name:   "test_name",
+				Serial: "test_serial",
+			},
+		}
+
+		body, _ := json.Marshal(testData)
+
+		req, _ := http.NewRequest("POST", "/device", bytes.NewReader(body))
+		w := httptest.NewRecorder()
+
+		server.Router.ServeHTTP(w, req)
+
+		paramBody := struct {
+			DeviceId string
+			Token    string
+			TTL      int64
+		}{}
+		json.Unmarshal(w.Body.Bytes(), &paramBody)
+
+		res, _ := server.Redis.Do("get", paramBody.Token)
+
+		if res == nil {
+			t.Error("Token should be stored in redis")
+		}
+	})
+}
+
+func TestCloseSession(t *testing.T) {
+	server := InitServer(false)
+	defer server.Teardown()
+	server.Redis.Do("flushall")
+
+	t.Run("Success", func(t *testing.T) {
+		testData := TokenParameter{
+			Device: struct {
+				Name   string `json:"name" binding:"required"`
+				Serial string `json:"serial" binding:"required"`
+			}{
+				Name:   "test_name",
+				Serial: "test_serial",
+			},
+		}
+
+		body, _ := json.Marshal(testData)
+
+		req, _ := http.NewRequest("POST", "/device", bytes.NewReader(body))
+		w := httptest.NewRecorder()
+
+		server.Router.ServeHTTP(w, req)
+
+		paramBody := struct {
+			DeviceId string
+			Token    string
+			TTL      int64
+		}{}
+		json.Unmarshal(w.Body.Bytes(), &paramBody)
+
+		testTokenData := struct {
+			Token string `json:"token"`
+		}{
+			Token: paramBody.Token,
+		}
+
+		body, _ = json.Marshal(testTokenData)
+		req, _ = http.NewRequest("POST", "/close", bytes.NewReader(body))
+		w = httptest.NewRecorder()
+
+		server.Router.ServeHTTP(w, req)
+		finalBody := struct {
+			Result string `json:"result"`
+		}{}
+		json.Unmarshal(w.Body.Bytes(), &finalBody)
+
+		if finalBody.Result != "ok" {
+			t.Error("Session was not closed successfuly")
+		}
+
+		res, _ := server.Redis.Do("get", paramBody.Token)
+
+		if res != nil {
+			t.Error("Session token was not erased successfully")
+		}
+	})
 }
