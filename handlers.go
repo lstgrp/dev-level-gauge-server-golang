@@ -127,34 +127,6 @@ func GenerateToken(s *Server) gin.HandlerFunc {
 	}
 }
 
-// OpenSession is the handler for /open
-// It takes the device id given and generates a new session token
-func OpenSession(s *Server) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var data = struct {
-			DeviceId string `json:"deviceid" binding:"required"`
-		}{}
-
-		if err := c.BindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "JSON Body is missing fields"})
-			return
-		}
-
-		deviceId := data.DeviceId
-		tokenStr := GetTokenString(deviceId)
-
-		if _, err := s.Redis.Do("SETEX", tokenStr, LocalConfig.tokenLifetime, tokenStr); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal error"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"token": tokenStr,
-			"ttl":   LocalConfig.tokenLifetime,
-		})
-	}
-}
-
 // CloseSession is the handler for /close
 // It takes the session token and erases it from redis, closing the session
 func CloseSession(s *Server) gin.HandlerFunc {
