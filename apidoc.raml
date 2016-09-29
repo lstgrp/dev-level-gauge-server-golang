@@ -137,7 +137,7 @@ mediaType: application/json
 
 /retrieve:
   post:
-    description: Get level gauge data with conditions
+    description: Get all level gauge data for given device id
     headers:
       x-api-token:
         example: longlongstring
@@ -152,25 +152,12 @@ mediaType: application/json
               "deviceid": {
                 "type": "string",
                 "required": true
-              },
-              "date": {
-                "type": "array",
-                "description": "Start and end time of time interval to query, in unix time",
-                "items": {
-                  "type": "integer"
-                }
-              },
-              "event": {
-                "type": "integer",
-                "description": "-1 to query regardless of event, 0 for non-event, 1 for event"
               }
             }
           }
         example: |
           {
             "deviceid": "test_device_id",
-            "date": [0, -1],
-            "event": -1
           }
     responses:
       200:
@@ -229,47 +216,6 @@ mediaType: application/json
           example: |
             {
               "result": "ok"
-            }
-      400:
-        body:
-          example: |
-            {
-              "status": "JSON Body is missing fields"
-            }
-      500:
-        body:
-          example: |
-            {
-              "status": "Internal error"
-            }
-/open:
-  post:
-    description: Open session with deviceid
-    body:
-      application/json:
-        schema: |
-          {
-            "type": "object",
-            "$schema": "http://json-schema.org/draft-03/schema",
-            "required": true,
-            "properties": {
-              "deviceid": {
-                "type": "string",
-                "required": true
-              }
-            }
-          }
-        example: |
-          {
-            "deviceid": "test_deviceid"
-          }
-    responses:
-      200:
-        body:
-          example: |
-            {
-              "token": "test_token",
-              "ttl": 3600
             }
       400:
         body:
